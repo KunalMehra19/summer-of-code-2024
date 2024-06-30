@@ -27,8 +27,10 @@ CREATE TABLE Staff (
   s_name TEXT NOT NULL,
   s_email TEXT UNIQUE NOT NULL,
   s_isAdmin BOOLEAN NOT NULL,
-  s_contact INTEGER UNIQUE NOT NULL
+  s_contact BIGINT UNIQUE NOT NULL,
+  pwd TEXT NOT NULL
 );
+
 
 -- Create Transaction table
 CREATE TABLE Transaction (
