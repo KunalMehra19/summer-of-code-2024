@@ -111,6 +111,110 @@ def create_app(test_config=None):
             return {"message": "incorrect information"}, 400
     api.add_resource(login,'/login')
 
+
+    class GetAllAndCreate(Resource):
+        def get(self):
+            conn=get_db()
+            curr=conn.cursor()
+            curr.execute('''SELECT * FROM InventoryItem''')
+
+            alldata=curr.fetchall()
+
+            curr.close()
+            conn.close()
+            return alldata
+        
+        
+        def post(self):
+            conn=get_db()
+            curr=conn.cursor()
+            curr.execute('''SELECT * FROM InventoryItem''')
+
+            alldata=curr.fetchall()
+
+            data = request.get_json()
+            item_sku = data.get('item_sku')
+            item_name = data.get('item_name')
+            item_description = data.get('item_description')
+            item_price = data.get('item_price')
+            item_qty = data.get('item_qty')
+            register_values=(item_sku,item_name,item_description,item_price,item_qty)
+
+            for i in alldata:
+                if i[0]==item_sku:
+                    curr.close()
+                    conn.close()
+                    return {"message": "Item already exists please update existing item"}, 200
+                
+            curr.execute('''INSERT INTO InventoryItem (item_sku,item_name,item_description,item_price,item_qty) VALUES(%s,%s,%s,%s,%s)''',register_values)            
+            conn.commit()
+            curr.close()
+            conn.close()
+            return {"message": "item has been added"}, 200
+
+    api.add_resource(GetAllAndCreate,"/products")
+
+
+    class GetOneUpdateAndDelete(Resource):
+        def get(self, item_sku):
+            conn=get_db()
+            curr=conn.cursor()
+            curr.execute('''SELECT * FROM InventoryItem''')
+
+            alldata=curr.fetchall()
+
+            for i in alldata:
+                if i[0]==item_sku:
+                    return i
+                
+            return {"message": "item is not present in database"}, 400
+        
+        def put(self, item_sku):
+            conn=get_db()
+            curr=conn.cursor()
+            curr.execute('''SELECT * FROM InventoryItem''')
+
+            alldata=curr.fetchall()
+
+            data = request.get_json()
+            item_name = data.get('item_name')
+            item_description = data.get('item_description')
+            item_price = data.get('item_price')
+            item_qty = data.get('item_qty')
+            for i in alldata:
+                if i[0]==item_sku:
+
+                    curr.execute('''UPDATE InventoryItem SET item_name=%s, item_description=%s, item_price=%s, item_qty=%s WHERE item_sku=%s''', (item_name, item_description, item_price, item_qty, item_sku))
+                    conn.commit()
+                    curr.close()
+                    conn.close()
+                    return {"message": "item is updated"}, 200
+            curr.close()
+            conn.close()
+            return {"message": "item is not present in database"}, 400
+        
+
+        def delete(self, item_sku):
+            conn=get_db()
+            curr=conn.cursor()
+            curr.execute('''SELECT * FROM InventoryItem''')
+
+            alldata=curr.fetchall()
+            for i in alldata:
+                if i[0]==item_sku:
+                    curr.execute('''DELETE FROM InventoryItem WHERE item_sku=%s''', (item_sku,))
+                    conn.commit()
+                    curr.close()
+                    conn.close()
+                    return {"message": "item is deleted"}, 200
+            curr.close()
+            conn.close()
+            return {"message": "item is not present in database"}, 400 
+
+
+        
+    api.add_resource(GetOneUpdateAndDelete,"/products/<item_sku>")
+
     return app
 
 if __name__ == '__main__':
