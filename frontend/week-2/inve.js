@@ -1,6 +1,37 @@
-var start=0;
+
 document.addEventListener("DOMContentLoaded", () => {
+var start=0;
 var len;
+
+    async function up(){
+        var cat=0;
+        var totalprod=0;
+        var totalprice=0;
+        let ad=await fetch("http://127.0.0.1:5000/products")
+        dat=await ad.json();
+        for (let i = 0; i < dat.length; i++) {
+            e = dat[i];
+            cat+=1;
+            totalprod+=e[4];
+            totalprice+=e[3]*e[4];
+            
+        }
+        console.log(cat)
+        console.log(totalprice)
+        console.log(totalprod)
+
+        document.getElementById("cate").innerHTML=cat
+        document.getElementById("totalprod").innerHTML=totalprod
+        document.getElementById("totalprice").innerHTML=totalprice
+
+
+        
+
+    }up();
+
+    
+
+
 
 
     document.getElementById("pre").addEventListener("click",()=>{
@@ -42,7 +73,7 @@ var len;
                                 <div class="col d-flex justify-content-center">${e[3]}</div>
                                 <div class="col d-flex justify-content-center">${e[4]}</div>
                                 <div class="col d-flex justify-content-center">
-                                    <div class="d-flex gap-3"><svg xmlns="http://www.w3.org/2000/svg" id="${e[0]}upd" viewBox="0 0 24 24"
+                                    <div class="d-flex gap-3"><svg xmlns="http://www.w3.org/2000/svg" id="${e[0]}upd"  data-bs-toggle="modal" data-bs-target="#${e[0]}modal" viewBox="0 0 24 24"
                                             width="24" height="24" color="#1d7eef" fill="none">
                                             <path
                                                 d="M16.2141 4.98239L17.6158 3.58063C18.39 2.80646 19.6452 2.80646 20.4194 3.58063C21.1935 4.3548 21.1935 5.60998 20.4194 6.38415L19.0176 7.78591M16.2141 4.98239L10.9802 10.2163C9.93493 11.2616 9.41226 11.7842 9.05637 12.4211C8.70047 13.058 8.3424 14.5619 8 16C9.43809 15.6576 10.942 15.2995 11.5789 14.9436C12.2158 14.5877 12.7384 14.0651 13.7837 13.0198L19.0176 7.78591M16.2141 4.98239L19.0176 7.78591"
@@ -66,6 +97,31 @@ var len;
                                         </svg></div>
                                 </div>
                             </div>
+
+                            <div class="modal fade" id="${e[0]}modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Updating Product</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="d-flex justify-content-between mt-1"><div>Item Name</div>
+                                        <input type="text" id="${e[0]}itemname"></div>
+                                        <div class="d-flex justify-content-between mt-1"><div>Item description</div>
+                                        <input type="text" id="${e[0]}itemdescription"></div>
+                                        <div class="d-flex justify-content-between mt-1"><div>Item Price</div>
+                                        <input type="number" id="${e[0]}itemprice"></div>
+                                        <div class="d-flex justify-content-between mt-1"><div>Item Quantity</div>
+                                        <input type="number" id="${e[0]}itemqty"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="${e[0]}addprod" >Save changes</button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
                 
                 
                 `
@@ -81,9 +137,61 @@ var len;
         }
                 console.log(lid)
                 lid.forEach(pp => {
+
+                    document.getElementById(`${pp}addprod`).addEventListener("click",()=>{
+                        isnm=document.getElementById(`${pp}itemname`).value
+                        isdes=document.getElementById(`${pp}itemdescription`).value
+                        ispr=document.getElementById(`${pp}itemprice`).value
+                        isqt=document.getElementById(`${pp}itemqty`).value
+
+
+                        fetch(`http://127.0.0.1:5000/products/${pp}`, {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                "item_name": isnm,
+                                "item_description": isdes,
+                                "item_price": ispr,
+                                "item_qty": isqt
+                            }),
+                            headers: {
+                                "Content-type": "application/json"
+                            }
+                        }).then(response => {
+                            if (!response.ok) {
+                                throw new Error("Failed to add product: " + response.status);
+                            }
+                            return response.json();
+                        }).then(data => {
+                            console.log("Product added successfully:", data);
+                            // Close the modal
+                            alert(data['message']);
+                            if(data['message'] && data['message'].includes('updated')){
+                                modal=document.getElementById(`${pp}modal`);
+                                modal.classList.remove('show');
+                                modal.style.display = 'none';
+                                modal.removeAttribute('aria-modal');
+                                modal.removeAttribute('role');
+                                document.getElementsByTagName("body")[0].removeChild(document.getElementsByClassName("modal-backdrop")[0])
+                                // Optionally, you can reload or update your data here
+                                // For example, call a function to refresh your inventory
+                                // fetchAndUpdateInventory();
+            
+                            }
+                           
+                            gg();
+                            up();
+                        })
+
+
+
+
+                    })
+
+
+                    
                     document.getElementById(`${pp}dlt`).addEventListener("click",()=>{
 
-                        console.log("hell")
+                        console.log("delete kar raha")
                         let userConfirmed = confirm("Are you sure you want to proceed?");
                         if(userConfirmed){
                             
@@ -100,6 +208,7 @@ var len;
                                 console.log("Product added successfully:", data);
                                 // Close the modal
                                 alert(data['message']);
+                                up();
                             })
                             document.getElementById(`${pp}row`).remove();
                             
@@ -162,6 +271,7 @@ var len;
                 }
                
                 gg();
+                up();
 
             })
             .catch(error => {
