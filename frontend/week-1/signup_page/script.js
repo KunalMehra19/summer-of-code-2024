@@ -1,4 +1,4 @@
-let checkbox = document.querySelector("input[id=checkadmin]");
+let checkbox = document.querySelector("#checkadmin");
 
 checkbox.addEventListener('change', function() {
   if (this.checked) {
